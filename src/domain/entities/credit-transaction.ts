@@ -112,6 +112,13 @@ export class CreditTransaction {
     return this.props.createdAt
   }
 
+  linkToPurchase(purchaseId: string): void {
+    if (this.props.relatedPurchaseId) {
+      throw new Error('Transaction already linked')
+    }
+    this.props.relatedPurchaseId = purchaseId
+  }
+
   toJSON(): Record<string, unknown> {
     return {
       id: this.props.id,

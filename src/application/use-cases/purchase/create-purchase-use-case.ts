@@ -192,9 +192,8 @@ export class CreatePurchaseUseCase {
       Logger.debug('Completing purchase')
       createdPurchase.complete(shipmentId)
       const completedPurchase = await purchaseRepo.update(createdPurchase)
-
       // Link transaction to purchase
-      // transaction.relatedPurchaseId = completedPurchase.id
+      transaction.linkToPurchase(completedPurchase.id)
 
       return completedPurchase
     })

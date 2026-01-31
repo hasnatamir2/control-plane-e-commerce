@@ -1,15 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express'
 import {
   CreatePurchaseUseCase,
   ListPurchasesUseCase,
   GetPurchaseUseCase,
   RefundPurchaseUseCase,
-} from '@application/use-cases/purchase';
-import {
-  CreatePurchaseDto,
-  RefundPurchaseDto,
-} from '@application/dtos/purchase-dto';
-import { Logger } from '@shared/utils/logger';
+} from '@application/use-cases/purchase'
+import { CreatePurchaseDto, RefundPurchaseDto } from '@application/dtos/purchase-dto'
+import { Logger } from '@shared/utils/logger'
 
 /**
  * Purchase Controller
@@ -29,7 +26,7 @@ export class PurchaseController {
    * Create a new purchase
    */
   async createPurchase(req: Request, res: Response): Promise<Response> {
-    Logger.info('Create purchase request', { body: req.body });
+    Logger.info('Create purchase request', { body: req.body })
 
     // Convert request to DTO
     const dto: CreatePurchaseDto = {
@@ -37,14 +34,14 @@ export class PurchaseController {
       productId: req.body.productId,
       quantity: req.body.quantity,
       createdBy: req.body.createdBy,
-    };
+    }
 
-    const result = await this.createPurchaseUseCase.execute(dto);
+    const result = await this.createPurchaseUseCase.execute(dto)
 
     return res.status(201).json({
       success: true,
       data: result,
-    });
+    })
   }
 
   /**
@@ -52,19 +49,19 @@ export class PurchaseController {
    * List all purchases with optional filtering
    */
   async listPurchases(req: Request, res: Response): Promise<Response> {
-    Logger.info('List purchases request', { query: req.query });
+    Logger.info('List purchases request', { query: req.query })
 
     const result = await this.listPurchasesUseCase.execute({
       customerId: req.query.customerId as string | undefined,
       status: req.query.status as string | undefined,
       limit: req.query.limit ? Number(req.query.limit) : undefined,
       offset: req.query.offset ? Number(req.query.offset) : undefined,
-    });
+    })
 
     return res.status(200).json({
       success: true,
       data: result,
-    });
+    })
   }
 
   /**
@@ -72,16 +69,16 @@ export class PurchaseController {
    * Get a single purchase by ID
    */
   async getPurchase(req: Request, res: Response): Promise<Response> {
-    Logger.info('Get purchase request', { purchaseId: req.params.purchaseId });
+    Logger.info('Get purchase request', { purchaseId: req.params.purchaseId })
 
     const result = await this.getPurchaseUseCase.execute({
       purchaseId: req.params.purchaseId as string,
-    });
+    })
 
     return res.status(200).json({
       success: true,
       data: result,
-    });
+    })
   }
 
   /**
@@ -92,18 +89,18 @@ export class PurchaseController {
     Logger.info('Get customer purchases request', {
       customerId: req.params.customerId,
       query: req.query,
-    });
+    })
 
     const result = await this.listPurchasesUseCase.execute({
       customerId: req.params.customerId as string,
       limit: req.query.limit ? Number(req.query.limit) : undefined,
       offset: req.query.offset ? Number(req.query.offset) : undefined,
-    });
+    })
 
     return res.status(200).json({
       success: true,
       data: result,
-    });
+    })
   }
 
   /**
@@ -114,7 +111,7 @@ export class PurchaseController {
     Logger.info('Refund purchase request', {
       purchaseId: req.params.purchaseId,
       body: req.body,
-    });
+    })
 
     // Convert request to DTO
     const dto: RefundPurchaseDto = {
@@ -122,13 +119,13 @@ export class PurchaseController {
       amount: req.body.amount,
       reason: req.body.reason,
       refundedBy: req.body.refundedBy,
-    };
+    }
 
-    const result = await this.refundPurchaseUseCase.execute(dto);
+    const result = await this.refundPurchaseUseCase.execute(dto)
 
     return res.status(200).json({
       success: true,
       data: result,
-    });
+    })
   }
 }
