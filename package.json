@@ -1,0 +1,62 @@
+{
+  "name": "control-plane-e-commerce",
+  "version": "1.0.0",
+  "description": "A clean architecture e-commerce platform built with TypeScript, Node.js, PostgreSQL, and Prisma. This project implements a purchase flow management system with credit balance tracking, audit trails, and comprehensive testing.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "lint": "echo \"lint skipped\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "prisma:reset": "prisma migrate reset --force",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:reset": "npm run db:down && npm run db:up"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hasnatamir2/control-plane-e-commerce.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hasnatamir2/control-plane-e-commerce/issues"
+  },
+  "homepage": "https://github.com/hasnatamir2/control-plane-e-commerce#readme",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^6.19.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "morgan": "^1.10.1",
+    "pg": "^8.17.2",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.1.0",
+    "@types/pg": "^8.16.0",
+    "@types/supertest": "^6.0.3",
+    "jest": "^29.7.0",
+    "prisma": "^6.19.2",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
+  }
+}

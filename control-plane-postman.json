@@ -1,0 +1,245 @@
+{
+  "info": {
+    "name": "E-Commerce Platform API",
+    "description": "Complete API collection for the e-commerce platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
+      "value": "550e8400-e29b-41d4-a716-446655440001",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "660e8400-e29b-41d4-a716-446655440001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credit Management",
+      "item": [
+        {
+          "name": "Grant Credit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"amount\": 1000.00,\n  \"reason\": \"Initial credit grant\",\n  \"createdBy\": \"admin-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/grant",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "grant"]
+            }
+          }
+        },
+        {
+          "name": "Deduct Credit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"amount\": 50.00,\n  \"reason\": \"Manual adjustment\",\n  \"createdBy\": \"admin-456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/deduct",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "deduct"]
+            }
+          }
+        },
+        {
+          "name": "Get Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/balance/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "balance", "{{customerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/credits/transactions/{{customerId}}?limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "credits", "transactions", "{{customerId}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Purchase Management",
+      "item": [
+        {
+          "name": "Create Purchase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"purchaseId\", jsonData.data.purchaseId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"createdBy\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/purchases",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchases"]
+            }
+          }
+        },
+        {
+          "name": "List All Purchases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchases?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchases"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "status",
+                  "value": "COMPLETED",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Purchase by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchases/{{purchaseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchases", "{{purchaseId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Customer Purchases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchases/customer/{{customerId}}?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchases", "customer", "{{customerId}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refund Purchase",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 49.99,\n  \"reason\": \"Customer not satisfied\",\n  \"refundedBy\": \"cs-rep-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/purchases/{{purchaseId}}/refund",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchases", "{{purchaseId}}", "refund"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

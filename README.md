@@ -62,6 +62,7 @@ The API will be available at `http://localhost:3000`
 ## 🎯 Features
 
 ### Core Features
+
 - ✅ Credit balance management (grant/deduct)
 - ✅ Get customer credit balance
 - ✅ Purchase products with credit
@@ -72,6 +73,7 @@ The API will be available at `http://localhost:3000`
 - ✅ Historical record keeping
 
 ### Bonus Features
+
 - 🎁 Product and customer caching
 - 🎁 React admin panel for customer service reps
 - 🎁 E2E tests
@@ -80,6 +82,7 @@ The API will be available at `http://localhost:3000`
 ## 📚 API Endpoints
 
 ### Credit Management
+
 ```
 POST   /api/credits/grant              - Grant credit to customer
 POST   /api/credits/deduct             - Deduct credit from customer
@@ -88,6 +91,7 @@ GET    /api/credits/transactions/:customerId - Get credit transaction history
 ```
 
 ### Purchase Management
+
 ```
 POST   /api/purchases                  - Create a new purchase
 GET    /api/purchases                  - List all purchases
@@ -97,6 +101,7 @@ POST   /api/purchases/:id/refund       - Refund a purchase
 ```
 
 ### Admin (Bonus)
+
 ```
 GET    /api/admin/customers            - List all customers
 GET    /api/admin/customers/:id/purchases - Get customer's purchase history
@@ -115,13 +120,18 @@ control-plane-ecommerce-platform/
 │   │   └── services/
 │   ├── application/           # Use cases & DTOs
 │   │   ├── use-cases/
+│   │   ├── services/
 │   │   └── dtos/
 │   ├── infrastructure/        # External concerns
 │   │   ├── database/
-│   │   ├── external-apis/
-│   │   └── cache/
+│   │   ├── container/
+│   │   └── external-apis/
 │   ├── presentation/          # HTTP & UI
 │   │   ├── http/
+│   │   │   ├── controllers/
+│   │   │   ├── routes/
+│   │   │   ├── validators/
+│   │   │   └── middlewares/
 │   │   └── web/
 │   ├── shared/               # Shared utilities
 │   │   ├── errors/
@@ -141,10 +151,12 @@ control-plane-ecommerce-platform/
 ### Test Data (Mock API)
 
 **Customers:**
+
 - John Doe: `550e8400-e29b-41d4-a716-446655440001`
 - Jane Smith: `550e8400-e29b-41d4-a716-446655440002`
 
 **Products:**
+
 - Professional Laptop (SKU: LAPTOP-001): `660e8400-e29b-41d4-a716-446655440001` - $1,299.99
 - Wireless Mouse (SKU: MOUSE-001): `660e8400-e29b-41d4-a716-446655440002` - $49.99
 - Mechanical Keyboard (SKU: KEYBOARD-001): `660e8400-e29b-41d4-a716-446655440003` - $149.99
@@ -209,6 +221,7 @@ docker-compose up -d --build
 ## 📊 Database Schema
 
 ### Core Tables
+
 - `credit_balances` - Current credit balance for each customer
 - `credit_transactions` - Audit trail of all credit changes
 - `purchases` - Purchase records with snapshots
@@ -217,7 +230,9 @@ docker-compose up -d --build
 ## 🎨 Design Decisions
 
 ### Audit Trail
+
 Every credit transaction is recorded with:
+
 - Balance before/after
 - Transaction type and reason
 - Related purchase ID (if applicable)
@@ -225,15 +240,19 @@ Every credit transaction is recorded with:
 - Additional metadata (JSON)
 
 ### Product/Customer Snapshots
+
 Purchase records store snapshots of product and customer data at the time of purchase to maintain historical accuracy even if external data changes.
 
 ### Optimistic Locking
+
 Credit balance updates use version-based optimistic locking to handle concurrent transactions safely.
 
 ### Transaction Rollback
+
 Purchase operations are wrapped in database transactions. If shipment creation fails, the entire purchase is rolled back including credit deductions.
 
 ### External API Separation
+
 Customer, Product, and Shipment APIs are treated as external services and accessed only through API calls, never directly from the persistence layer.
 
 ## 🚧 Future Improvements

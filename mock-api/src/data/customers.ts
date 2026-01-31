@@ -1,0 +1,48 @@
+export const CustomersData = [
+  {
+    id: '550e8400-e29b-41d4-a716-446655440001',
+    name: 'John Doe',
+    billingAddress: {
+      line1: '123 Market Street',
+      line2: 'Apt 4B',
+      city: 'San Francisco',
+      postalCode: '94105',
+      state: 'CA',
+      country: 'US',
+    },
+    shippingAddress: {
+      line1: '123 Market Street',
+      line2: 'Apt 4B',
+      city: 'San Francisco',
+      postalCode: '94105',
+      state: 'CA',
+      country: 'US',
+    },
+    email: 'john.doe@example.com',
+    createdAt: 1704067200000,
+    lastModifiedAt: 1706745600000,
+  },
+  {
+    id: '550e8400-e29b-41d4-a716-446655440002',
+    name: 'Jane Smith',
+    billingAddress: {
+      line1: '42 Oxford Street',
+      line2: '',
+      city: 'London',
+      postalCode: 'W1D 1BS',
+      state: 'London',
+      country: 'UK',
+    },
+    shippingAddress: {
+      line1: '99 Baker Street',
+      line2: '',
+      city: 'London',
+      postalCode: 'NW1 6XE',
+      state: 'London',
+      country: 'UK',
+    },
+    email: 'jane.smith@example.co.uk',
+    createdAt: 1703980800000,
+    lastModifiedAt: 1706659200000,
+  },
+]

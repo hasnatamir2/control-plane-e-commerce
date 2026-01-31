@@ -1,0 +1,104 @@
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Credit Balance - Current state of customer's credit
+model CreditBalance {
+  id             String   @id @default(uuid())
+  customerId     String   @unique @map("customer_id")
+  currentBalance Decimal  @default(0) @map("current_balance") @db.Decimal(10, 2)
+  version        Int      @default(0) // For optimistic locking
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  transactions CreditTransaction[]
+
+  @@map("credit_balances")
+}
+
+// Credit Transaction - Audit trail of all credit changes
+model CreditTransaction {
+  id                String                @id @default(uuid())
+  customerId        String                @map("customer_id")
+  type              CreditTransactionType
+  amount            Decimal               @db.Decimal(10, 2)
+  balanceBefore     Decimal               @map("balance_before") @db.Decimal(10, 2)
+  balanceAfter      Decimal               @map("balance_after") @db.Decimal(10, 2)
+  reason            String
+  relatedPurchaseId String?               @map("related_purchase_id")
+  metadata          Json? // Additional context (JSON)
+  createdBy         String?               @map("created_by") // User/system that created transaction
+  createdAt         DateTime              @default(now()) @map("created_at")
+
+  creditBalance CreditBalance @relation(fields: [customerId], references: [customerId])
+  purchase      Purchase?     @relation(fields: [relatedPurchaseId], references: [id])
+
+  @@index([customerId])
+  @@index([relatedPurchaseId])
+  @@index([createdAt])
+  @@map("credit_transactions")
+}
+
+enum CreditTransactionType {
+  GRANT
+  DEDUCT
+  REFUND
+}
+
+// Purchase - Main purchase entity
+model Purchase {
+  id               String         @id @default(uuid())
+  customerId       String         @map("customer_id")
+  productId        String         @map("product_id")
+  quantity         Int
+  unitPrice        Decimal        @map("unit_price") @db.Decimal(10, 2) // Price at time of purchase
+  totalAmount      Decimal        @map("total_amount") @db.Decimal(10, 2)
+  refundedAmount   Decimal        @default(0) @map("refunded_amount") @db.Decimal(10, 2)
+  status           PurchaseStatus @default(COMPLETED)
+  shipmentId       String?        @map("shipment_id")
+  productSnapshot  Json?          @map("product_snapshot") // Store product details at purchase time
+  customerSnapshot Json?          @map("customer_snapshot") // Store customer details at purchase time
+  createdBy        String?        @map("created_by")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  refunds      Refund[]
+  transactions CreditTransaction[]
+
+  @@index([customerId])
+  @@index([productId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("purchases")
+}
+
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  PARTIALLY_REFUNDED
+  FULLY_REFUNDED
+  CANCELLED
+}
+
+// Refund - Track all refund operations
+model Refund {
+  id         String   @id @default(uuid())
+  purchaseId String   @map("purchase_id")
+  amount     Decimal  @db.Decimal(10, 2)
+  reason     String?
+  refundedBy String?  @map("refunded_by") // CS rep or system
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id])
+
+  @@index([purchaseId])
+  @@index([createdAt])
+  @@map("refunds")
+}
