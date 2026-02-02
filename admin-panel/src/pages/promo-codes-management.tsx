@@ -56,20 +56,20 @@ export const PromoCodeManagement: React.FC = () => {
   })
 
   // Disable mutation
-  //   const disableMutation = useMutation({
-  //     mutationFn: promoCodeApi.disable,
-  //     onSuccess: () => {
-  //       queryClient.invalidateQueries({ queryKey: ['promoCode'] })
-  //       createToast({ title: 'Promo code disabled', type: 'success' })
-  //     },
-  //     onError: (error: any) => {
-  //       createToast({
-  //         title: 'Failed to disable promo code',
-  //         description: error.response?.data?.error?.message,
-  //         type: 'danger',
-  //       })
-  //     },
-  //   })
+  const disableMutation = useMutation({
+    mutationFn: promoCodeApi.disable,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['promoCode'] })
+      createToast({ title: 'Promo code disabled', type: 'success' })
+    },
+    onError: (error: ErrorReponse) => {
+      createToast({
+        title: 'Failed to disable promo code',
+        description: error.response?.data?.error?.message,
+        type: 'danger',
+      })
+    },
+  })
 
   const handleCreate = () => {
     if (!code || !value || !validFrom || !validUntil) {
@@ -89,11 +89,14 @@ export const PromoCodeManagement: React.FC = () => {
     })
   }
 
-  //   const handleDisable = (id: string) => {
-  //     if (confirm('Are you sure you want to disable this promo code?')) {
-  //       disableMutation.mutate(id)
-  //     }
-  //   }
+  const handleDisable = useCallback(
+    (id: string) => {
+      if (confirm('Are you sure you want to disable this promo code?')) {
+        disableMutation.mutate(id)
+      }
+    },
+    [disableMutation]
+  )
 
   const resetForm = () => {
     setCode('')
@@ -131,50 +134,73 @@ export const PromoCodeManagement: React.FC = () => {
     ]
   }, [])
 
-  const promoCodeRows = useCallback((promoCodes: PromoCode[]) => {
-    if (!promoCodes || (promoCodes && !promoCodes.length)) return []
-    return promoCodes.map((promoCode) => ({
-      id: promoCode.id,
-      items: [
-        {
-          label: <Text weight="bold">{promoCode.code}</Text>,
-        },
-        {
-          label: (
-            <Text size="sm">
-              {promoCode.type === 'PERCENTAGE'
-                ? `${promoCode.value}% off`
-                : `$${promoCode.value} off`}
-            </Text>
-          ),
-        },
-        {
-          label: (
-            <Text size="sm">
-              {promoCode.currentUsageCount}
-              {promoCode.maxUsageCount ? ` / ${promoCode.maxUsageCount}` : ' / ∞'}
-            </Text>
-          ),
-        },
-        {
-          label: (
-            <Text size="sm">
-              {format(new Date(promoCode.validFrom), 'MMM d, yyyy')} -{' '}
-              {format(new Date(promoCode.validUntil), 'MMM d, yyyy')}
-            </Text>
-          ),
-        },
-        {
-          label: (
-            <Badge state={getStatusColor(promoCode.status) as BadgeState} text={promoCode.status} />
-          ),
-        },
-        {
-          label: <Button type="danger">Disable</Button>,
-        },
-      ],
-    }))
-  }, [])
+  const disableInFlightId = disableMutation.variables as string | undefined
+  const isDisablePending = disableMutation.isPending
+
+  const promoCodeRows = useCallback(
+    (promoCodes: PromoCode[]) => {
+      if (!promoCodes || promoCodes.length === 0) return []
+      return promoCodes.map((promoCode) => {
+        const isDisabling = isDisablePending && disableInFlightId === promoCode.id
+        const disableButtonDisabled = promoCode.status !== 'ACTIVE' || isDisablePending
+
+        return {
+          id: promoCode.id,
+          items: [
+            {
+              label: <Text weight="bold">{promoCode.code}</Text>,
+            },
+            {
+              label: (
+                <Text size="sm">
+                  {promoCode.type === 'PERCENTAGE'
+                    ? `${promoCode.value}% off`
+                    : `$${promoCode.value} off`}
+                </Text>
+              ),
+            },
+            {
+              label: (
+                <Text size="sm">
+                  {promoCode.currentUsageCount}
+                  {promoCode.maxUsageCount ? ` / ${promoCode.maxUsageCount}` : ' / ∞'}
+                </Text>
+              ),
+            },
+            {
+              label: (
+                <Text size="sm">
+                  {format(new Date(promoCode.validFrom), 'MMM d, yyyy')} -{' '}
+                  {format(new Date(promoCode.validUntil), 'MMM d, yyyy')}
+                </Text>
+              ),
+            },
+            {
+              label: (
+                <Badge
+                  state={getStatusColor(promoCode.status) as BadgeState}
+                  text={promoCode.status}
+                />
+              ),
+            },
+            {
+              label: (
+                <Button
+                  type="danger"
+                  disabled={disableButtonDisabled}
+                  loading={isDisabling}
+                  onClick={() => handleDisable(promoCode.id)}
+                >
+                  Disable
+                </Button>
+              ),
+            },
+          ],
+        }
+      })
+    },
+    [disableInFlightId, handleDisable, isDisablePending]
+  )
 
   return (
     <Container orientation="vertical" gap="lg">

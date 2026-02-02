@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 export const promoCodeTypeSchema = z.enum(['PERCENTAGE', 'FIXED_AMOUNT'])
+export const promoCodeStatusSchema = z.enum(['ACTIVE', 'EXPIRED', 'DISABLED', 'USED_UP'])
 
 export const createPromoCodeBodySchema = z
   .object({
@@ -25,6 +26,24 @@ export const validatePromoCodeBodySchema = z.object({
   productId: z.string().optional(),
 })
 
+const booleanStringSchema = z
+  .union([z.literal('true'), z.literal('false')])
+  .optional()
+  .transform((value) => {
+    if (value === undefined) return undefined
+    return value === 'true'
+  })
+
+export const listPromoCodeQuerySchema = z.object({
+  status: promoCodeStatusSchema.optional(),
+  type: promoCodeTypeSchema.optional(),
+  isActive: booleanStringSchema,
+})
+
+export const disablePromoCodeParamsSchema = z.object({
+  id: z.string().uuid(),
+})
+
 // Export validation objects
 export const createPromoCodeSchema = {
   body: createPromoCodeBodySchema,
@@ -32,4 +51,12 @@ export const createPromoCodeSchema = {
 
 export const validatePromoCodeSchema = {
   body: validatePromoCodeBodySchema,
+}
+
+export const listPromoCodeSchema = {
+  query: listPromoCodeQuerySchema,
+}
+
+export const disablePromoCodeSchema = {
+  params: disablePromoCodeParamsSchema,
 }

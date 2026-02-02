@@ -172,7 +172,6 @@ export const promoCodeApi = {
   },
 
   list: async () => {
-    // TODO:
     const response = await api.get('/promo-code')
     return response.data.data
   },

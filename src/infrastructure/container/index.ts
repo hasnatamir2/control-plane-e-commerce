@@ -33,6 +33,8 @@ import { PurchaseController } from '../../presentation/http/controllers/purchase
 import { PromoCodeController } from '@presentation/http/controllers/promo-code-controller'
 import { CreatePromoCodeUseCase } from '@application/use-cases/promo-code/create-promo-code-use-case'
 import { ValidatePromoCodeUseCase } from '@application/use-cases/promo-code/validate-promo-code-use-case'
+import { ListPromoCodesUseCase } from '@application/use-cases/promo-code/list-promo-codes-use-case'
+import { DisablePromoCodeUseCase } from '@application/use-cases/promo-code/disable-promo-code-use-case'
 
 /**
  * Dependency Injection Container
@@ -69,6 +71,8 @@ export class Container {
   // Use Cases - Promo Code
   public readonly createPromoCodeUseCase: CreatePromoCodeUseCase
   public readonly validatePromoCodeUseCase: ValidatePromoCodeUseCase
+  public readonly listPromoCodesUseCase: ListPromoCodesUseCase
+  public readonly disablePromoCodeUseCase: DisablePromoCodeUseCase
 
   // Controllers
   public readonly creditController: CreditController
@@ -108,6 +112,8 @@ export class Container {
     // Use Cases - Promo Code
     this.createPromoCodeUseCase = new CreatePromoCodeUseCase(this.promoCodeRepository)
     this.validatePromoCodeUseCase = new ValidatePromoCodeUseCase(this.promoCodeRepository)
+    this.listPromoCodesUseCase = new ListPromoCodesUseCase(this.promoCodeRepository)
+    this.disablePromoCodeUseCase = new DisablePromoCodeUseCase(this.promoCodeRepository)
 
     this.listPurchasesUseCase = new ListPurchasesUseCase(this.purchaseRepository)
     this.getPurchaseUseCase = new GetPurchaseUseCase(this.purchaseRepository)
@@ -134,7 +140,9 @@ export class Container {
 
     this.promoCodeController = new PromoCodeController(
       this.createPromoCodeUseCase,
-      this.validatePromoCodeUseCase
+      this.validatePromoCodeUseCase,
+      this.listPromoCodesUseCase,
+      this.disablePromoCodeUseCase
     )
   }
 
