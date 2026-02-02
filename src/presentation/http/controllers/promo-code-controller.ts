@@ -68,7 +68,7 @@ export class PromoCodeController {
   async disable(req: Request, res: Response): Promise<Response> {
     Logger.info('Disable promo code request', { params: req.params })
 
-    const result = await this.disablePromoCodeUseCase.execute(req.params.id)
+    const result = await this.disablePromoCodeUseCase.execute(req.params.id as string)
 
     return res.status(200).json({ success: true, data: result })
   }
