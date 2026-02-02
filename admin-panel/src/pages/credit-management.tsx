@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { creditApi, mockApi, type CreditTransaction } from '../lib/api'
+import { creditApi, mockApi, type CreditTransaction, type ErrorReponse } from '../lib/api'
 import {
   CardPrimary,
   Button,
@@ -66,7 +66,7 @@ export const CreditManagement: React.FC = () => {
       setAmount('')
       setReason('')
     },
-    onError: (error: any) => {
+    onError: (error: ErrorReponse) => {
       createToast({
         type: 'danger',
         title: 'Failed to grant credit',
@@ -93,7 +93,7 @@ export const CreditManagement: React.FC = () => {
       setAmount('')
       setReason('')
     },
-    onError: (error: any) => {
+    onError: (error: ErrorReponse) => {
       createToast({
         type: 'danger',
         title: 'Failed to deduct credit',

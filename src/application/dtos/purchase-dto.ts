@@ -48,6 +48,7 @@ export interface CreatePurchaseDto {
   productId: string
   quantity: number
   createdBy?: string
+  promoCode?: string
 }
 
 export interface RefundDto {

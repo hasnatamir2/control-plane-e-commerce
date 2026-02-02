@@ -40,6 +40,7 @@ export interface Purchase {
   shipmentId?: string
   createdAt: string
   updatedAt: string
+  discountAmount: number
 }
 
 export interface PurchaseDetail extends Purchase {
@@ -58,6 +59,31 @@ export interface PurchaseDetail extends Purchase {
     reason?: string
     createdAt: string
   }>
+}
+
+export interface PromoCode {
+  id: string
+  code: string
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT'
+  value: number
+  status: string
+  currentUsageCount?: number
+  minPurchaseAmount?: number
+  maxDiscountAmount?: number
+  maxUsageCount?: number
+  validFrom: Date
+  validUntil: Date
+  applicableProductIds?: string[]
+}
+
+export interface ErrorReponse extends Error {
+  response: {
+    data: {
+      error: {
+        message: string
+      }
+    }
+  }
 }
 
 // API Functions
@@ -109,11 +135,12 @@ export const purchaseApi = {
     return response.data.data
   },
 
-  create: async (customerId: string, productId: string, quantity: number) => {
+  create: async (customerId: string, productId: string, quantity: number, promoCode?: string) => {
     const response = await api.post('/purchases', {
       customerId,
       productId,
       quantity,
+      promoCode,
       createdBy: 'admin-panel',
     })
     return response.data.data
@@ -125,6 +152,43 @@ export const purchaseApi = {
       reason,
       refundedBy: 'admin-panel',
     })
+    return response.data.data
+  },
+}
+
+export const promoCodeApi = {
+  create: async (data: {
+    code: string
+    type: 'PERCENTAGE' | 'FIXED_AMOUNT'
+    value: number
+    minPurchaseAmount?: number
+    maxDiscountAmount?: number
+    maxUsageCount?: number
+    validFrom: Date
+    validUntil: Date
+  }) => {
+    const response = await api.post('/promo-code', data)
+    return response.data.data
+  },
+
+  list: async () => {
+    // TODO:
+    const response = await api.get('/promo-code')
+    return response.data.data
+  },
+
+  validate: async (code: string, purchaseAmount: number, productId?: string) => {
+    const response = await api.post('/promo-code/validate', {
+      code,
+      purchaseAmount,
+      productId,
+    })
+    return response.data.data
+  },
+
+  disable: async (id: string) => {
+    // TODO:
+    const response = await api.patch(`/promo-code/${id}/disable`)
     return response.data.data
   },
 }

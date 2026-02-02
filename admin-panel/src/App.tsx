@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CreditManagement } from './pages/credit-management'
 import { PurchaseManagement } from './pages/purchase-management'
 import { Text, Tabs, ClickUIProvider, ToastProvider, Logo } from '@clickhouse/click-ui'
+import { PromoCodeManagement } from './pages/promo-codes-management'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,8 +16,6 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const location = useLocation()
-  const activeTab = location.pathname === '/purchases' ? 'purchases' : 'credits'
-
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ borderBottom: '1px solid var(--cui-border-default)', padding: '16px 24px' }}>
@@ -31,13 +30,16 @@ function AppContent() {
           <Text size="lg" weight="bold">
             Control Plane Admin Panel
           </Text>
-          <Tabs value={activeTab}>
+          <Tabs value={location.pathname}>
             <Tabs.TriggersList>
               <Link to="/" style={{ textDecoration: 'none' }}>
-                <Tabs.Trigger value="credits">Credits</Tabs.Trigger>
+                <Tabs.Trigger value="/">Credits</Tabs.Trigger>
               </Link>
               <Link to="/purchases" style={{ textDecoration: 'none' }}>
-                <Tabs.Trigger value="purchases">Purchases</Tabs.Trigger>
+                <Tabs.Trigger value="/purchases">Purchases</Tabs.Trigger>
+              </Link>
+              <Link to="/promo-codes" style={{ textDecoration: 'none' }}>
+                <Tabs.Trigger value="/promo-codes">Promo Codes</Tabs.Trigger>
               </Link>
             </Tabs.TriggersList>
           </Tabs>
@@ -50,6 +52,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<CreditManagement />} />
           <Route path="/purchases" element={<PurchaseManagement />} />
+          <Route path="/promo-codes" element={<PromoCodeManagement />} />
         </Routes>
       </main>
 
@@ -66,7 +69,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ClickUIProvider theme="light">
+        <ClickUIProvider theme="dark">
           <ToastProvider>
             <AppContent />
           </ToastProvider>

@@ -4,6 +4,7 @@ import { prisma } from '@infrastructure/database/client'
 // Repositories
 import { CreditRepository } from '@infrastructure/database/repositories/credit-repository'
 import { PurchaseRepository } from '@infrastructure/database/repositories/purchase-repository'
+import { PromoCodeRepository } from '@infrastructure/database/repositories/promo-code-repository'
 
 // External API Clients
 import { CustomerApiClient } from '@infrastructure/external-apis/customer-api-client'
@@ -29,6 +30,9 @@ import {
 // Controllers
 import { CreditController } from '../../presentation/http/controllers/credit-controller'
 import { PurchaseController } from '../../presentation/http/controllers/purchase-controller'
+import { PromoCodeController } from '@presentation/http/controllers/promo-code-controller'
+import { CreatePromoCodeUseCase } from '@application/use-cases/promo-code/create-promo-code-use-case'
+import { ValidatePromoCodeUseCase } from '@application/use-cases/promo-code/validate-promo-code-use-case'
 
 /**
  * Dependency Injection Container
@@ -43,6 +47,7 @@ export class Container {
   // Repositories
   public readonly creditRepository: CreditRepository
   public readonly purchaseRepository: PurchaseRepository
+  public readonly promoCodeRepository: PromoCodeRepository
 
   // External API Clients
   public readonly customerApiClient: CustomerApiClient
@@ -61,9 +66,14 @@ export class Container {
   public readonly getPurchaseUseCase: GetPurchaseUseCase
   public readonly refundPurchaseUseCase: RefundPurchaseUseCase
 
+  // Use Cases - Promo Code
+  public readonly createPromoCodeUseCase: CreatePromoCodeUseCase
+  public readonly validatePromoCodeUseCase: ValidatePromoCodeUseCase
+
   // Controllers
   public readonly creditController: CreditController
   public readonly purchaseController: PurchaseController
+  public readonly promoCodeController: PromoCodeController
 
   private constructor() {
     // Infrastructure
@@ -72,6 +82,7 @@ export class Container {
     // Repositories
     this.creditRepository = new CreditRepository(this.prisma)
     this.purchaseRepository = new PurchaseRepository(this.prisma)
+    this.promoCodeRepository = new PromoCodeRepository(this.prisma)
 
     // External API Clients
     this.customerApiClient = new CustomerApiClient()
@@ -93,6 +104,11 @@ export class Container {
       this.productApiClient,
       this.shipmentApiClient
     )
+
+    // Use Cases - Promo Code
+    this.createPromoCodeUseCase = new CreatePromoCodeUseCase(this.promoCodeRepository)
+    this.validatePromoCodeUseCase = new ValidatePromoCodeUseCase(this.promoCodeRepository)
+
     this.listPurchasesUseCase = new ListPurchasesUseCase(this.purchaseRepository)
     this.getPurchaseUseCase = new GetPurchaseUseCase(this.purchaseRepository)
     this.refundPurchaseUseCase = new RefundPurchaseUseCase(
@@ -114,6 +130,11 @@ export class Container {
       this.listPurchasesUseCase,
       this.getPurchaseUseCase,
       this.refundPurchaseUseCase
+    )
+
+    this.promoCodeController = new PromoCodeController(
+      this.createPromoCodeUseCase,
+      this.validatePromoCodeUseCase
     )
   }
 

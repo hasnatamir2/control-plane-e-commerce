@@ -1,32 +1,36 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { purchaseApi, mockApi, type Purchase } from '../lib/api'
+import { purchaseApi, mockApi, promoCodeApi, type Purchase, type ErrorReponse } from '../lib/api'
 import {
+  CardPrimary,
   Button,
+  TextField,
+  NumberField,
   Select,
   Text,
-  Badge,
-  CardPrimary,
   Container,
-  NumberField,
-  TextField,
-  Separator,
   useToast,
-  BigStat,
-  Icon,
+  Badge,
+  Separator,
   type BadgeState,
 } from '@clickhouse/click-ui'
 import { format } from 'date-fns'
 
 export const PurchaseManagement: React.FC = () => {
+  const { createToast } = useToast()
   const [customerId, setCustomerId] = useState('550e8400-e29b-41d4-a716-446655440001')
   const [productId, setProductId] = useState('660e8400-e29b-41d4-a716-446655440001')
   const [quantity, setQuantity] = useState('1')
+  const [promoCode, setPromoCode] = useState('')
+  const [promoValidation, setPromoValidation] = useState<null | {
+    valid: boolean
+    message?: string
+    discountAmount?: number
+  }>(null)
   const [selectedPurchase, setSelectedPurchase] = useState<string | null>(null)
   const [refundAmount, setRefundAmount] = useState('')
   const [refundReason, setRefundReason] = useState('')
   const queryClient = useQueryClient()
-  const { createToast } = useToast()
 
   // Fetch data
   const { data: customers } = useQuery({
@@ -44,7 +48,7 @@ export const PurchaseManagement: React.FC = () => {
     queryFn: () => purchaseApi.list({ customerId, limit: 50 }),
   })
 
-  const { data: purchaseDetail, isLoading: loadingPurchaseDetail } = useQuery({
+  const { data: purchaseDetail } = useQuery({
     queryKey: ['purchase', selectedPurchase],
     queryFn: () => purchaseApi.get(selectedPurchase!),
     enabled: !!selectedPurchase,
@@ -56,20 +60,24 @@ export const PurchaseManagement: React.FC = () => {
       customerId,
       productId,
       quantity,
+      promoCode,
     }: {
       customerId: string
       productId: string
       quantity: number
-    }) => purchaseApi.create(customerId, productId, quantity),
+      promoCode?: string
+    }) => purchaseApi.create(customerId, productId, quantity, promoCode),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchases'] })
       queryClient.invalidateQueries({ queryKey: ['balance'] })
-      createToast({ title: 'Purchase created successfully!' })
+      createToast({ title: 'Purchase created successfully!', type: 'success' })
       setQuantity('1')
+      setPromoCode('')
+      setPromoValidation(null)
     },
-    onError: (error: any) => {
+    onError: (error: ErrorReponse) => {
       const message = error.response?.data?.error?.message || 'Failed to create purchase'
-      createToast({ type: 'danger', title: 'Failed to create purchase', description: message })
+      createToast({ title: 'Failed to create purchase', description: message, type: 'danger' })
     },
   })
 
@@ -88,15 +96,15 @@ export const PurchaseManagement: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['purchases'] })
       queryClient.invalidateQueries({ queryKey: ['purchase'] })
       queryClient.invalidateQueries({ queryKey: ['balance'] })
-      createToast({ title: 'Refund processed successfully!' })
+      createToast({ title: 'Refund processed successfully!', type: 'success' })
       setRefundAmount('')
       setRefundReason('')
     },
-    onError: (error: any) => {
+    onError: (error: ErrorReponse) => {
       createToast({
-        type: 'danger',
         title: 'Failed to process refund',
         description: error.response?.data?.error?.message,
+        type: 'danger',
       })
     },
   })
@@ -110,6 +118,7 @@ export const PurchaseManagement: React.FC = () => {
       customerId,
       productId,
       quantity: parseInt(quantity),
+      promoCode: promoCode || undefined,
     })
   }
 
@@ -123,6 +132,42 @@ export const PurchaseManagement: React.FC = () => {
       amount: parseFloat(refundAmount),
       reason: refundReason,
     })
+  }
+
+  // Validate promo code
+  const handleValidatePromo = async () => {
+    if (!promoCode) {
+      setPromoValidation(null)
+      return
+    }
+
+    const selectedProduct = products?.find((product: { id: string }) => product.id === productId)
+    if (!selectedProduct) return
+
+    const purchaseAmount = selectedProduct.price * parseInt(quantity || '1')
+
+    try {
+      const validation = await promoCodeApi.validate(promoCode, purchaseAmount, productId)
+      setPromoValidation(validation)
+
+      if (validation.valid) {
+        createToast({
+          title: 'Valid promo code!',
+          description: `Discount: $${validation.discountAmount?.toFixed(2)}`,
+          type: 'success',
+        })
+      } else {
+        createToast({
+          title: 'Invalid promo code',
+          description: validation.message,
+          type: 'warning',
+        })
+      }
+    } catch (error: unknown) {
+      console.log(error)
+      setPromoValidation({ valid: false, message: 'Failed to validate promo code' })
+      createToast({ title: 'Failed to validate promo code', type: 'danger' })
+    }
   }
 
   const getStatusColor = (status: string) => {
@@ -140,8 +185,10 @@ export const PurchaseManagement: React.FC = () => {
     }
   }
 
-  const selectedProduct = products?.find((p: { id: string }) => p.id === productId)
+  const selectedProduct = products?.find((product: { id: string }) => product.id === productId)
   const totalAmount = selectedProduct ? selectedProduct.price * parseInt(quantity || '1') : 0
+  const discountAmount = promoValidation?.valid ? promoValidation.discountAmount || 0 : 0
+  const finalAmount = totalAmount - discountAmount
 
   return (
     <Container orientation="vertical" gap="lg">
@@ -156,58 +203,130 @@ export const PurchaseManagement: React.FC = () => {
       <CardPrimary title="Create Purchase" description="Create a new purchase for a customer">
         <>
           <Container orientation="vertical" gap="md">
-            <Container gap="md">
-              <div>
-                <Text size="sm" weight="medium" style={{ marginBottom: '8px' }}>
-                  Customer
-                </Text>
-                <Select
-                  value={customerId}
-                  onSelect={(value) => {
-                    setCustomerId(value)
-                    setSelectedPurchase(null)
-                  }}
-                  style={{ width: '100%' }}
-                  options={customers?.map(
-                    (customer: { name: string; id: string; email: string }) => ({
-                      label: `${customer.name} (${customer.email})`,
-                      value: customer.id,
-                    })
-                  )}
-                />
-              </div>
+            <Select
+              label="Customer"
+              value={customerId}
+              onSelect={(value) => setCustomerId(value as string)}
+              style={{ width: '100%' }}
+              options={customers?.map((customer: { name: string; email: string; id: string }) => ({
+                label: `${customer.name} (${customer.email})`,
+                value: customer.id,
+              }))}
+            />
 
-              <div>
-                <Text size="sm" weight="medium" style={{ marginBottom: '8px' }}>
-                  Product
-                </Text>
-                <Select
-                  value={productId}
-                  onSelect={(value) => {
-                    setProductId(value)
-                    setSelectedPurchase(null)
+            <Select
+              label="Product"
+              value={productId}
+              onSelect={(value) => {
+                setProductId(value as string)
+                setPromoValidation(null) // Reset promo validation on product change
+              }}
+              style={{ width: '100%' }}
+              options={products?.map((product: { price: number; id: string; name: string }) => ({
+                label: `${product.name} - $${product.price.toFixed(2)}`,
+                value: product.id,
+              }))}
+            />
+
+            <NumberField
+              id="quantity"
+              loading={false}
+              label="Quantity"
+              value={quantity}
+              onChange={(e) => {
+                setQuantity(e)
+                setPromoValidation(null) // Reset promo validation on quantity change
+              }}
+            />
+
+            <Separator orientation="horizontal" size="sm" />
+
+            {/* Promo Code Section */}
+            <Container orientation="vertical" gap="sm">
+              <Text size="sm" weight="bold">
+                Promo Code (Optional)
+              </Text>
+              <Container gap="sm">
+                <TextField
+                  placeholder="Enter promo code"
+                  value={promoCode}
+                  onChange={(e) => {
+                    setPromoCode(e.toUpperCase())
+                    setPromoValidation(null)
                   }}
-                  style={{ width: '100%' }}
-                  options={products?.map(
-                    (product: { name: string; price: number; id: string }) => ({
-                      label: `${product.name} - $${product.price.toFixed(2)}`,
-                      value: product.id,
-                    })
-                  )}
+                  style={{ flex: 1 }}
                 />
-              </div>
-              <NumberField
-                loading={false}
-                type="number"
-                label="Quantity"
-                value={quantity}
-                onChange={(e) => setQuantity(e)}
-                min="1"
-              />
+                <Button onClick={handleValidatePromo} type="secondary">
+                  Validate
+                </Button>
+              </Container>
+
+              {promoValidation && (
+                <Container
+                  style={{
+                    padding: '12px',
+                    borderRadius: '4px',
+                    backgroundColor: promoValidation.valid
+                      ? 'var(--cui-bg-success-subtle)'
+                      : 'var(--cui-bg-danger-subtle)',
+                  }}
+                >
+                  {promoValidation.valid ? (
+                    <Container orientation="vertical" gap="xs">
+                      <Text size="sm" weight="bold" style={{ color: 'var(--cui-color-success)' }}>
+                        ✓ Valid Promo Code
+                      </Text>
+                      <Text size="sm">Discount: ${promoValidation.discountAmount?.toFixed(2)}</Text>
+                    </Container>
+                  ) : (
+                    <Text size="sm" style={{ color: 'var(--cui-color-danger)' }}>
+                      ✗ {promoValidation.message}
+                    </Text>
+                  )}
+                </Container>
+              )}
             </Container>
 
+            <Separator orientation="horizontal" size="sm" />
+
+            {/* Price Summary */}
             {selectedProduct && (
-              <BigStat title={`$${totalAmount.toFixed(2)}`} label="Total Amount" fillWidth />
+              <Container
+                orientation="vertical"
+                gap="sm"
+                style={{
+                  padding: '16px',
+                  backgroundColor: 'var(--cui-bg-subtle)',
+                  borderRadius: '4px',
+                }}
+              >
+                <Container justifyContent="space-between">
+                  <Text size="sm" color="muted">
+                    Subtotal
+                  </Text>
+                  <Text size="sm">${totalAmount.toFixed(2)}</Text>
+                </Container>
+
+                {discountAmount > 0 && (
+                  <Container justifyContent="space-between">
+                    <Text size="sm" color="muted">
+                      Discount ({promoCode})
+                    </Text>
+                    <Text size="sm" style={{ color: 'var(--cui-color-success)' }}>
+                      -${discountAmount.toFixed(2)}
+                    </Text>
+                  </Container>
+                )}
+
+                <Separator orientation="horizontal" size="xs" />
+
+                <Container justifyContent="space-between">
+                  <Text weight="bold">Total Amount</Text>
+                  <Text size="lg" weight="bold">
+                    ${finalAmount.toFixed(2)}
+                  </Text>
+                </Container>
+              </Container>
             )}
 
             <Button
@@ -234,21 +353,20 @@ export const PurchaseManagement: React.FC = () => {
               {purchasesList?.purchases.map((purchase: Purchase) => (
                 <CardPrimary
                   key={purchase.id}
+                  onClick={() => setSelectedPurchase(purchase.id)}
                   style={{
                     cursor: 'pointer',
                     border:
                       selectedPurchase === purchase.id
                         ? '2px solid var(--cui-color-primary)'
                         : '1px solid var(--cui-border-default)',
-                    transition: 'all 0.2s',
                   }}
-                  onClick={() => setSelectedPurchase(purchase.id)}
                 >
                   <>
                     <Container justifyContent="space-between" alignItems="start">
                       <Container orientation="vertical" gap="sm" style={{ flex: 1 }}>
                         <Container gap="sm" alignItems="center">
-                          <Text size="sm" color="muted">
+                          <Text size="sm" color="muted" style={{ fontFamily: 'mono' }}>
                             #{purchase.id.slice(0, 8)}
                           </Text>
                           <Badge
@@ -259,6 +377,11 @@ export const PurchaseManagement: React.FC = () => {
                         <Text size="sm">
                           Quantity: {purchase.quantity} × ${purchase.unitPrice.toFixed(2)}
                         </Text>
+                        {purchase.discountAmount > 0 && (
+                          <Text size="sm" style={{ color: 'var(--cui-color-success)' }}>
+                            💰 Promo discount: -${purchase.discountAmount.toFixed(2)}
+                          </Text>
+                        )}
                         <Text size="xs" color="muted">
                           {format(new Date(purchase.createdAt), 'PPpp')}
                         </Text>
@@ -281,11 +404,6 @@ export const PurchaseManagement: React.FC = () => {
       </CardPrimary>
 
       {/* Purchase Detail & Refund */}
-      {selectedProduct && loadingPurchaseDetail && (
-        <Text fillWidth style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-          <Icon name="loading-animated" style={{}} /> Loading Purchase Details
-        </Text>
-      )}
       {selectedPurchase && purchaseDetail && (
         <CardPrimary
           title="Process Refund"
@@ -293,56 +411,67 @@ export const PurchaseManagement: React.FC = () => {
         >
           <>
             <Container orientation="vertical" gap="md">
-              <CardPrimary style={{ padding: '16px', backgroundColor: 'var(--cui-bg-subtle)' }}>
-                <Container wrap="wrap" gap="lg">
-                  <Container orientation="vertical" gap="xs">
-                    <Text size="sm" color="muted">
-                      Total Amount
-                    </Text>
-                    <Text weight="medium">${purchaseDetail.totalAmount.toFixed(2)}</Text>
-                  </Container>
-                  <Container orientation="vertical" gap="xs">
-                    <Text size="sm" color="muted">
-                      Refunded
-                    </Text>
-                    <Text weight="medium">${purchaseDetail.refundedAmount.toFixed(2)}</Text>
-                  </Container>
-                  <Container orientation="vertical" gap="xs">
-                    <Text size="sm" color="muted">
-                      Remaining
-                    </Text>
-                    <Text weight="medium" color="muted">
-                      ${purchaseDetail.remainingAmount.toFixed(2)}
-                    </Text>
-                  </Container>
-                  <Container orientation="vertical" gap="xs">
-                    <Text size="sm" color="muted">
-                      Status
-                    </Text>
-                    <Badge
-                      state={getStatusColor(purchaseDetail.status) as BadgeState}
-                      text={purchaseDetail.status}
-                    />
-                  </Container>
+              <Container
+                gap="lg"
+                style={{
+                  padding: '16px',
+                  backgroundColor: 'var(--cui-bg-subtle)',
+                  borderRadius: '4px',
+                }}
+              >
+                <Container orientation="vertical" gap="xs">
+                  <Text size="sm" color="muted">
+                    Total Amount
+                  </Text>
+                  <Text weight="medium">${purchaseDetail.totalAmount.toFixed(2)}</Text>
                 </Container>
-              </CardPrimary>
+                {purchaseDetail.discountAmount > 0 && (
+                  <Container orientation="vertical" gap="xs">
+                    <Text size="sm" color="muted">
+                      Discount Applied
+                    </Text>
+                    <Text weight="medium" style={{ color: 'var(--cui-color-success)' }}>
+                      ${purchaseDetail.discountAmount.toFixed(2)}
+                    </Text>
+                  </Container>
+                )}
+                <Container orientation="vertical" gap="xs">
+                  <Text size="sm" color="muted">
+                    Refunded
+                  </Text>
+                  <Text weight="medium">${purchaseDetail.refundedAmount.toFixed(2)}</Text>
+                </Container>
+                <Container orientation="vertical" gap="xs">
+                  <Text size="sm" color="muted">
+                    Remaining
+                  </Text>
+                  <Text weight="medium">${purchaseDetail.remainingAmount.toFixed(2)}</Text>
+                </Container>
+                <Container orientation="vertical" gap="xs">
+                  <Text size="sm" color="muted">
+                    Status
+                  </Text>
+                  <Badge
+                    state={getStatusColor(purchaseDetail.status) as BadgeState}
+                    text={purchaseDetail.status}
+                  />
+                </Container>
+              </Container>
 
               {purchaseDetail.remainingAmount > 0 && (
                 <>
                   <NumberField
                     loading={false}
-                    type="number"
                     label="Refund Amount"
                     placeholder="0.00"
                     value={refundAmount}
-                    onChange={setRefundAmount}
-                    step="0.01"
+                    onChange={(e) => setRefundAmount(e)}
                   />
                   <TextField
                     label="Reason (optional)"
                     placeholder="Customer request, damaged item, etc."
                     value={refundReason}
-                    onChange={setRefundReason}
+                    onChange={(e) => setRefundReason(e)}
                   />
                   <Button
                     onClick={handleRefund}
@@ -369,16 +498,12 @@ export const PurchaseManagement: React.FC = () => {
                           reason?: string
                           createdAt: string
                         },
-                        index
+                        index: number
                       ) => (
                         <div key={refund.id}>
-                          {index > 0 && <Separator orientation="horizontal" size="sm" />}
-                          <Container
-                            justifyContent="space-between"
-                            style={{ padding: '8px 0' }}
-                            gap="sm"
-                          >
-                            <Text weight="medium">${refund.amount.toFixed(2)} </Text>
+                          {index > 0 && <Separator orientation="horizontal" size="xs" />}
+                          <Container justifyContent="space-between" style={{ padding: '8px 0' }}>
+                            <Text weight="medium">${refund.amount.toFixed(2)}</Text>
                             <Text size="sm" color="muted">
                               {format(new Date(refund.createdAt), 'PPp')}
                             </Text>

@@ -68,9 +68,12 @@ model Purchase {
   createdBy        String?        @map("created_by")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
+  promoCodeId      String?        @map("promo_code_id")
+  discountAmount   Decimal        @default(0) @map("discount_amount") @db.Decimal(10, 2)
 
-  refunds      Refund[]
-  transactions CreditTransaction[]
+  refunds         Refund[]
+  transactions    CreditTransaction[]
+  promoCodeUsages PromoCodeUsage[]
 
   @@index([customerId])
   @@index([productId])
@@ -101,4 +104,45 @@ model Refund {
   @@index([purchaseId])
   @@index([createdAt])
   @@map("refunds")
+}
+
+// Promo Codes
+model PromoCode {
+  id                   String   @id @default(uuid())
+  code                 String   @unique
+  type                 String // PERCENTAGE or FIXED_AMOUNT
+  value                Decimal  @db.Decimal(10, 2)
+  minPurchaseAmount    Decimal? @map("min_purchase_amount") @db.Decimal(10, 2)
+  maxDiscountAmount    Decimal? @map("max_discount_amount") @db.Decimal(10, 2)
+  maxUsageCount        Int?     @map("max_usage_count")
+  currentUsageCount    Int      @default(0) @map("current_usage_count")
+  validFrom            DateTime @map("valid_from")
+  validUntil           DateTime @map("valid_until")
+  status               String // ACTIVE, EXPIRED, DISABLED, USED_UP
+  applicableProductIds Json?    @map("applicable_product_ids")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  usages PromoCodeUsage[]
+
+  @@index([code])
+  @@index([status])
+  @@map("promo_codes")
+}
+
+model PromoCodeUsage {
+  id             String   @id @default(uuid())
+  promoCodeId    String   @map("promo_code_id")
+  customerId     String   @map("customer_id")
+  purchaseId     String   @map("purchase_id")
+  discountAmount Decimal  @map("discount_amount") @db.Decimal(10, 2)
+  usedAt         DateTime @default(now()) @map("used_at")
+
+  promoCode PromoCode @relation(fields: [promoCodeId], references: [id])
+  purchase  Purchase  @relation(fields: [purchaseId], references: [id])
+
+  @@index([promoCodeId])
+  @@index([customerId])
+  @@index([purchaseId])
+  @@map("promo_code_usages")
 }
