@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express'
 import cors from 'cors'
 import { v4 as uuidv4 } from 'uuid'
-import { Customer, CustomersData } from 'data/customers'
-import { Product, ProductsData } from 'data/products'
+import { Customer, CustomersData } from './data/customers'
+import { Product, ProductsData } from './data/products'
 import { Shipment } from 'data/shipments'
 
 const app = express()
