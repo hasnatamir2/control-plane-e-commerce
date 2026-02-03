@@ -54,7 +54,6 @@ The API will be available at `http://localhost:3000`
 - **Framework**: Express.js
 - **Database**: PostgreSQL
 - **ORM**: Prisma
-- **Cache**: Redis (for bonus caching feature)
 - **Testing**: Jest + Supertest
 - **Validation**: Zod
 - **Containerization**: Docker & Docker Compose

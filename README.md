@@ -8,7 +8,7 @@ This project follows **Clean Architecture** and **Domain-Driven Design (DDD)** p
 
 - **Domain Layer**: Business logic, entities, value objects, and repository interfaces
 - **Application Layer**: Use cases and DTOs
-- **Infrastructure Layer**: Database repositories and external API clients
+- **Infrastructure Layer**: Database repositories, external API clients, and caching
 - **Presentation Layer**: HTTP controllers, routes, and middleware
 
 ## 🚀 Quick Start
@@ -34,7 +34,7 @@ npm install
 cp .env.example .env
 
 # Start Docker services
-docker-compose up -d
+docker compose up -d
 
 # Generate Prisma client
 npx prisma generate
@@ -73,6 +73,7 @@ The API will be available at `http://localhost:3000`
 
 ### Bonus Features
 
+- 🎁 Product and customer caching
 - 🎁 React admin panel for customer service reps
 - 🎁 E2E tests
 - 🎁 Promo code support
@@ -204,16 +205,16 @@ npm run format
 
 ```bash
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # Stop all services
-docker-compose down
+docker compose down
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Rebuild containers
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ## 📊 Database Schema
