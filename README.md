@@ -8,7 +8,7 @@ This project follows **Clean Architecture** and **Domain-Driven Design (DDD)** p
 
 - **Domain Layer**: Business logic, entities, value objects, and repository interfaces
 - **Application Layer**: Use cases and DTOs
-- **Infrastructure Layer**: Database repositories, external API clients, and caching
+- **Infrastructure Layer**: Database repositories and external API clients
 - **Presentation Layer**: HTTP controllers, routes, and middleware
 
 ## 🚀 Quick Start
@@ -54,7 +54,6 @@ The API will be available at `http://localhost:3000`
 - **Framework**: Express.js
 - **Database**: PostgreSQL
 - **ORM**: Prisma
-- **Cache**: Redis (for bonus caching feature)
 - **Testing**: Jest + Supertest
 - **Validation**: Zod
 - **Containerization**: Docker & Docker Compose
@@ -74,7 +73,6 @@ The API will be available at `http://localhost:3000`
 
 ### Bonus Features
 
-- 🎁 Product and customer caching
 - 🎁 React admin panel for customer service reps
 - 🎁 E2E tests
 - 🎁 Promo code support
