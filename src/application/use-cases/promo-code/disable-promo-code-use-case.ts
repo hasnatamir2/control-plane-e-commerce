@@ -1,6 +1,6 @@
 import { PromoCodeDto } from '../../dtos/promo-code-dto'
 import { IPromoCodeRepository } from '@domain/repositories/ipromo-code-repository'
-import { toPromoCodeDto } from '../../mappers/promo-code-mapper'
+import { toPromoCodeDto } from '../../services/promo-code-mapper'
 import { NotFoundError } from '@shared/errors'
 
 export class DisablePromoCodeUseCase {

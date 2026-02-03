@@ -254,18 +254,6 @@ Purchase operations are wrapped in database transactions. If shipment creation f
 
 Customer, Product, and Shipment APIs are treated as external services and accessed only through API calls, never directly from the persistence layer.
 
-## 🚧 Future Improvements
-
-- [ ] Authentication & Authorization (JWT)
-- [ ] Rate limiting
-- [ ] API documentation (Swagger/OpenAPI)
-- [ ] Monitoring & logging (e.g., Winston, DataDog)
-- [ ] Event sourcing for complete audit trail
-- [ ] Message queue for async shipment processing
-- [ ] Multi-currency support
-- [ ] Inventory management
-- [ ] Order status tracking
-
 ## 📝 Environment Variables
 
 See `.env.example` for all available configuration options.

@@ -1,7 +1,7 @@
 import { PromoCodeStatus, PromoCodeType } from '@domain/entities/promo-code'
 import { IPromoCodeRepository } from '@domain/repositories/ipromo-code-repository'
 import { PromoCodeDto } from '../../dtos/promo-code-dto'
-import { toPromoCodeDto } from '../../mappers/promo-code-mapper'
+import { toPromoCodeDto } from '../../services/promo-code-mapper'
 
 export interface ListPromoCodesFilters {
   status?: PromoCodeStatus

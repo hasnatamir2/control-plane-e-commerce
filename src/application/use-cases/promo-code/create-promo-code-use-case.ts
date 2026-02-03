@@ -1,7 +1,7 @@
 import { IPromoCodeRepository } from '@domain/repositories/ipromo-code-repository'
 import { PromoCode, PromoCodeStatus, PromoCodeType } from '@domain/entities/promo-code'
 import { CreatePromoCodeDto, PromoCodeDto } from '../../dtos/promo-code-dto'
-import { toPromoCodeDto } from '../../mappers/promo-code-mapper'
+import { toPromoCodeDto } from '../../services/promo-code-mapper'
 import { ValidationError } from '@shared/errors'
 
 export class CreatePromoCodeUseCase {
