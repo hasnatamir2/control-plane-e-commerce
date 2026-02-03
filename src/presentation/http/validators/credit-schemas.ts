@@ -10,7 +10,7 @@ const grantCreditBodySchema = z.object({
   amount: z.number().positive('Amount must be greater than 0'),
   reason: z.string().min(1, 'Reason is required'),
   createdBy: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.object(z.unknown()).optional(),
 })
 
 const deductCreditBodySchema = z.object({
@@ -18,7 +18,7 @@ const deductCreditBodySchema = z.object({
   amount: z.number().positive('Amount must be greater than 0'),
   reason: z.string().min(1, 'Reason is required'),
   createdBy: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.object(z.unknown()).optional(),
 })
 
 const customerIdParamSchema = z.object({

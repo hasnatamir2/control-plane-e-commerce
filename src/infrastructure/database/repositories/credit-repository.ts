@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { ICreditRepository } from '@domain/repositories/icredit-repository'
 import { CreditBalance } from '@domain/entities/credit-balance'
 import { CreditTransaction, CreditTransactionType } from '@domain/entities/credit-transaction'
@@ -78,8 +78,10 @@ export class CreditRepository implements ICreditRepository {
       })
     } catch (error) {
       // If update fails due to version mismatch, throw concurrency error
-      if ((error as any).code === 'P2025') {
-        throw new ConcurrencyError('CreditBalance', balance.customerId.value)
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new ConcurrencyError('CreditBalance', balance.customerId.value)
+        }
       }
       throw error
     }
@@ -96,7 +98,7 @@ export class CreditRepository implements ICreditRepository {
         balanceAfter: transaction.balanceAfter.amount,
         reason: transaction.reason,
         relatedPurchaseId: transaction.relatedPurchaseId,
-        metadata: transaction.metadata as any,
+        metadata: this.serializeSnapshot(transaction.metadata),
         createdBy: transaction.createdBy,
       },
     })
@@ -160,5 +162,13 @@ export class CreditRepository implements ICreditRepository {
     })
 
     return this.create(newBalance)
+  }
+
+  private serializeSnapshot<T extends object>(snapshot?: T): Prisma.InputJsonValue | undefined {
+    if (!snapshot) {
+      return undefined
+    }
+
+    return snapshot as unknown as Prisma.InputJsonValue
   }
 }

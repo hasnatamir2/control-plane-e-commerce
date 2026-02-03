@@ -1,6 +1,6 @@
 import { Purchase } from '@domain/entities/purchase'
 import { Refund } from '@domain/entities/refund'
-import { Customer, Product } from '@shared/types/external-api.types'
+import { Address, Customer, Product } from '@shared/types/external-api.types'
 import {
   PurchaseDto,
   PurchaseDetailDto,
@@ -83,7 +83,7 @@ export class PurchaseMapper {
   /**
    * Convert Address to AddressDto
    */
-  static toAddressDto(address: any): AddressDto {
+  static toAddressDto(address: Address): AddressDto {
     return {
       line1: address.line1,
       line2: address.line2,

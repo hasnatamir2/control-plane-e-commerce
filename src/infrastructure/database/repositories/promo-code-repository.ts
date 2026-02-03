@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, PromoCode as PrismaPromoCode } from '@prisma/client'
 import { PromoCode, PromoCodeStatus, PromoCodeType } from '@domain/entities/promo-code'
 import { IPromoCodeRepository, PromoCodeFilters } from '@domain/repositories/ipromo-code-repository'
 
@@ -43,7 +43,7 @@ export class PromoCodeRepository implements IPromoCodeRepository {
   }
 
   async findAll(filters?: PromoCodeFilters): Promise<PromoCode[]> {
-    const where: any = {}
+    const where: PromoCodeFilters = {}
 
     if (filters?.status) {
       where.status = filters.status
@@ -79,7 +79,7 @@ export class PromoCodeRepository implements IPromoCodeRepository {
   }
 
   async count(filters?: PromoCodeFilters): Promise<number> {
-    const where: any = {}
+    const where: PromoCodeFilters = {}
 
     if (filters?.status) {
       where.status = filters.status
@@ -104,7 +104,7 @@ export class PromoCodeRepository implements IPromoCodeRepository {
     })
   }
 
-  private toDomain(data: any): PromoCode {
+  private toDomain(data: PrismaPromoCode): PromoCode {
     return PromoCode.reconstitute({
       id: data.id,
       code: data.code,

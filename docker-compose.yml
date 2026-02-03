@@ -1,19 +1,4 @@
 services:
-  # Redis Cache (for bonus features)
-  # redis:
-  #   image: redis:7-alpine
-  #   container_name: ecommerce-cache
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - redis_data:/data
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 10s
-  #     timeout: 3s
-  #     retries: 5
-  #   restart: unless-stopped
-
   # Mock API Server (simulates external Customer, Product, Shipment APIs)
   mock-api:
     build:

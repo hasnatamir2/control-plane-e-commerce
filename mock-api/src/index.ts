@@ -1,49 +1,15 @@
 import express, { Request, Response } from 'express'
 import cors from 'cors'
 import { v4 as uuidv4 } from 'uuid'
+import { Customer, CustomersData } from 'data/customers'
+import { Product, ProductsData } from 'data/products'
+import { Shipment } from 'data/shipments'
 
 const app = express()
 const PORT = process.env.PORT || 3001
 
 app.use(cors())
 app.use(express.json())
-
-// In-memory data stores
-interface Address {
-  line1: string
-  line2?: string
-  city: string
-  postalCode: string
-  state: string
-  country: string
-}
-
-interface Customer {
-  id: string
-  name: string
-  billingAddress: Address
-  shippingAddress: Address
-  email: string
-  createdAt: number
-  lastModifiedAt: number
-}
-
-interface Product {
-  id: string
-  sku: string
-  name: string
-  description: string
-  price: number
-  createdAt: number
-  lastModifiedAt: number
-}
-
-interface Shipment {
-  id: string
-  shippingAddress: Address
-  products: Array<{ sku: string; quantity: number }>
-  createdAt: number
-}
 
 // Mock data
 const customers: Map<string, Customer> = new Map()
@@ -52,92 +18,13 @@ const shipments: Map<string, Shipment> = new Map()
 
 // Initialize with some mock data
 function initializeMockData(): void {
-  const now = Date.now()
+  CustomersData.forEach((customer) => {
+    customers.set(customer.id, customer)
+  })
 
-  // Create mock customers
-  const customer1: Customer = {
-    id: '550e8400-e29b-41d4-a716-446655440001',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    billingAddress: {
-      line1: '123 Main St',
-      line2: 'Apt 4B',
-      city: 'New York',
-      postalCode: '10001',
-      state: 'NY',
-      country: 'USA',
-    },
-    shippingAddress: {
-      line1: '123 Main St',
-      line2: 'Apt 4B',
-      city: 'New York',
-      postalCode: '10001',
-      state: 'NY',
-      country: 'USA',
-    },
-    createdAt: now - 86400000, // 1 day ago
-    lastModifiedAt: now - 3600000, // 1 hour ago
-  }
-
-  const customer2: Customer = {
-    id: '550e8400-e29b-41d4-a716-446655440002',
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    billingAddress: {
-      line1: '456 Oak Ave',
-      city: 'San Francisco',
-      postalCode: '94102',
-      state: 'CA',
-      country: 'USA',
-    },
-    shippingAddress: {
-      line1: '789 Pine St',
-      city: 'San Francisco',
-      postalCode: '94103',
-      state: 'CA',
-      country: 'USA',
-    },
-    createdAt: now - 172800000, // 2 days ago
-    lastModifiedAt: now - 7200000, // 2 hours ago
-  }
-
-  customers.set(customer1.id, customer1)
-  customers.set(customer2.id, customer2)
-
-  // Create mock products
-  const product1: Product = {
-    id: '660e8400-e29b-41d4-a716-446655440001',
-    sku: 'LAPTOP-001',
-    name: 'Professional Laptop',
-    description: 'High-performance laptop for professionals',
-    price: 1299.99,
-    createdAt: now - 604800000, // 7 days ago
-    lastModifiedAt: now - 86400000, // 1 day ago
-  }
-
-  const product2: Product = {
-    id: '660e8400-e29b-41d4-a716-446655440002',
-    sku: 'MOUSE-001',
-    name: 'Wireless Mouse',
-    description: 'Ergonomic wireless mouse',
-    price: 49.99,
-    createdAt: now - 518400000, // 6 days ago
-    lastModifiedAt: now - 172800000, // 2 days ago
-  }
-
-  const product3: Product = {
-    id: '660e8400-e29b-41d4-a716-446655440003',
-    sku: 'KEYBOARD-001',
-    name: 'Mechanical Keyboard',
-    description: 'Premium mechanical keyboard with RGB lighting',
-    price: 149.99,
-    createdAt: now - 432000000, // 5 days ago
-    lastModifiedAt: now - 86400000, // 1 day ago
-  }
-
-  products.set(product1.id, product1)
-  products.set(product2.id, product2)
-  products.set(product3.id, product3)
+  ProductsData.forEach((product) => {
+    products.set(product.id, product)
+  })
 }
 
 // Health check endpoint
@@ -152,7 +39,7 @@ app.get('/api/customers/:customerId', (req: Request, res: Response) => {
   const customer = customers.get(customerId as string)
 
   if (!customer) {
-    return res.status(404).json({
+    res.status(404).json({
       Message: `Customer with ID ${customerId} not found`,
     })
   }
@@ -167,7 +54,7 @@ app.get('/api/products/:productId', (req: Request, res: Response) => {
   const product = products.get(productId as string)
 
   if (!product) {
-    return res.status(404).json({
+    res.status(404).json({
       Message: `Product with ID ${productId} not found`,
     })
   }
@@ -181,7 +68,7 @@ app.post('/api/shipments', (req: Request, res: Response) => {
 
   // Validate request
   if (!shippingAddress || !shipmentProducts || !Array.isArray(shipmentProducts)) {
-    return res.status(400).json({
+    res.status(400).json({
       Message: 'Invalid request. shippingAddress and products are required.',
     })
   }
@@ -190,7 +77,7 @@ app.post('/api/shipments', (req: Request, res: Response) => {
   for (const item of shipmentProducts) {
     const productExists = Array.from(products.values()).some((p) => p.sku === item.sku)
     if (!productExists) {
-      return res.status(400).json({
+      res.status(400).json({
         Message: `Product with SKU ${item.sku} not found`,
       })
     }
@@ -198,7 +85,7 @@ app.post('/api/shipments', (req: Request, res: Response) => {
 
   // Simulate occasional failures (10% chance) for testing rollback logic
   if (Math.random() < 0.1) {
-    return res.status(500).json({
+    res.status(500).json({
       Message: 'Shipment service temporarily unavailable',
     })
   }
@@ -219,19 +106,19 @@ app.post('/api/shipments', (req: Request, res: Response) => {
 // Additional helper endpoints (not in spec, but useful for testing)
 
 // GET /api/customers - List all customers
-app.get('/api/customers', (req: Request, res: Response) => {
+app.get('/api/customers', (_: Request, res: Response) => {
   const allCustomers = Array.from(customers.values())
   res.json(allCustomers)
 })
 
 // GET /api/products - List all products
-app.get('/api/products', (req: Request, res: Response) => {
+app.get('/api/products', (_: Request, res: Response) => {
   const allProducts = Array.from(products.values())
   res.json(allProducts)
 })
 
 // GET /api/shipments - List all shipments (for debugging)
-app.get('/api/shipments', (req: Request, res: Response) => {
+app.get('/api/shipments', (_: Request, res: Response) => {
   const allShipments = Array.from(shipments.values())
   res.json(allShipments)
 })
@@ -242,7 +129,7 @@ app.get('/api/shipments/:shipmentId', (req: Request, res: Response) => {
   const shipment = shipments.get(shipmentId as string)
 
   if (!shipment) {
-    return res.status(404).json({
+    res.status(404).json({
       Message: `Shipment with ID ${shipmentId} not found`,
     })
   }

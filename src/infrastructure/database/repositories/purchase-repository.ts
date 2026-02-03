@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma, Purchase as PrismaPurchase } from '@prisma/client'
 import { IPurchaseRepository } from '@domain/repositories/ipurchase-repository'
 import { Purchase, PurchaseStatus } from '@domain/entities/purchase'
 import { Refund } from '@domain/entities/refund'
@@ -26,8 +26,8 @@ export class PurchaseRepository implements IPurchaseRepository {
         refundedAmount: purchase.refundedAmount.amount,
         status: purchase.status,
         shipmentId: purchase.shipmentId,
-        productSnapshot: purchase.productSnapshot as any,
-        customerSnapshot: purchase.customerSnapshot as any,
+        productSnapshot: this.serializeSnapshot(purchase.productSnapshot),
+        customerSnapshot: this.serializeSnapshot(purchase.customerSnapshot),
         createdBy: purchase.createdBy,
       },
     })
@@ -102,8 +102,8 @@ export class PurchaseRepository implements IPurchaseRepository {
         refundedAmount: purchase.refundedAmount.amount,
         status: purchase.status,
         shipmentId: purchase.shipmentId,
-        productSnapshot: purchase.productSnapshot as any,
-        customerSnapshot: purchase.customerSnapshot as any,
+        productSnapshot: this.serializeSnapshot(purchase.productSnapshot),
+        customerSnapshot: this.serializeSnapshot(purchase.customerSnapshot),
         updatedAt: new Date(),
       },
     })
@@ -162,7 +162,7 @@ export class PurchaseRepository implements IPurchaseRepository {
   /**
    * Convert Prisma model to Domain entity
    */
-  private toDomain(record: any): Purchase {
+  private toDomain(record: PrismaPurchase): Purchase {
     return Purchase.reconstitute({
       id: record.id,
       customerId: CustomerId.from(record.customerId),
@@ -173,11 +173,27 @@ export class PurchaseRepository implements IPurchaseRepository {
       refundedAmount: Money.from(record.refundedAmount),
       status: record.status as PurchaseStatus,
       shipmentId: record.shipmentId || undefined,
-      productSnapshot: record.productSnapshot as Product | undefined,
-      customerSnapshot: record.customerSnapshot as Customer | undefined,
+      productSnapshot: this.deserializeSnapshot<Product>(record.productSnapshot),
+      customerSnapshot: this.deserializeSnapshot<Customer>(record.customerSnapshot),
       createdBy: record.createdBy || undefined,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     })
+  }
+
+  private serializeSnapshot<T extends object>(snapshot?: T): Prisma.InputJsonValue | undefined {
+    if (!snapshot) {
+      return undefined
+    }
+
+    return snapshot as unknown as Prisma.InputJsonValue
+  }
+
+  private deserializeSnapshot<T>(snapshot: Prisma.JsonValue | null): T | undefined {
+    if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
+      return undefined
+    }
+
+    return snapshot as T
   }
 }

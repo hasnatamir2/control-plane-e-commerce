@@ -1,3 +1,19 @@
+export interface Address {
+  line1: string
+  line2?: string
+  city: string
+  postalCode: string
+  state: string
+  country: string
+}
+
+export interface Shipment {
+  id: string
+  shippingAddress: Address
+  products: Array<{ sku: string; quantity: number }>
+  createdAt: number
+}
+
 export const ShipmentData = [
   {
     shippingAddress: {

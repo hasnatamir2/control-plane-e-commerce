@@ -19,6 +19,8 @@ import {
 import { Logger } from '../../../shared/utils/logger'
 import { CreatePurchaseDto, PurchaseDto } from '../../dtos/purchase-dto'
 import { PurchaseMapper } from '../../services/purchase-mapper'
+import { Customer, Product } from '@shared/types'
+import { cloneRepository } from '@shared/utils/repository-clone'
 
 /**
  * Create Purchase Use Case
@@ -120,14 +122,14 @@ export class CreatePurchaseUseCase {
     quantity: number,
     unitPrice: Money,
     totalAmount: Money,
-    customer: any,
-    product: any,
+    customer: Customer,
+    product: Product,
     createdBy?: string
   ): Promise<Purchase> {
     return await this.prisma.$transaction(async (tx) => {
       // Create repository instances with transaction client
-      const creditRepo = new (this.creditRepository.constructor as any)(tx)
-      const purchaseRepo = new (this.purchaseRepository.constructor as any)(tx)
+      const creditRepo = cloneRepository(this.creditRepository, tx)
+      const purchaseRepo = cloneRepository(this.purchaseRepository, tx)
 
       // Step 5: Deduct credit using domain service
       Logger.debug('Deducting credit')

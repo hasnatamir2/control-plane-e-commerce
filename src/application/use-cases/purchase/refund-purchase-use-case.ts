@@ -10,6 +10,7 @@ import { ValidationError, NotFoundError } from '@shared/errors'
 import { Logger } from '@shared/utils/logger'
 import { RefundPurchaseDto, RefundResultDto } from '../../dtos/purchase-dto'
 import { PurchaseMapper } from '../../services/purchase-mapper'
+import { cloneRepository } from '@shared/utils/repository-clone'
 
 /**
  * Refund Purchase Use Case
@@ -57,8 +58,8 @@ export class RefundPurchaseUseCase {
     refundedBy?: string
   ): Promise<RefundResultDto> {
     return await this.prisma.$transaction(async (tx) => {
-      const creditRepo = new (this.creditRepository.constructor as any)(tx)
-      const purchaseRepo = new (this.purchaseRepository.constructor as any)(tx)
+      const creditRepo = cloneRepository(this.creditRepository, tx)
+      const purchaseRepo = cloneRepository(this.purchaseRepository, tx)
 
       // Get purchase
       const purchase = await purchaseRepo.findById(purchaseId)

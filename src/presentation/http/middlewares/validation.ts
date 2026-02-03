@@ -43,7 +43,7 @@ export function validateRequest(schema: ValidationSchema) {
         next(
           new ValidationError(
             'Request validation failed',
-            error.errors.map((e) => `${e.path.join('.')}: ${e.message}`)
+            error.issues.map((e) => `${e.path.join('.')}: ${e.message}`)
           )
         )
       } else {
