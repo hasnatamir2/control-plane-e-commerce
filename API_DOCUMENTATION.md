@@ -2,6 +2,9 @@
 
 This document describes every HTTP endpoint implemented by the Node.js backend in `src/presentation/http`. Use it as the single source of truth when building clients (admin panel, automation, tests) against the purchase-control plane.
 
+## Testing Postman
+- [**Postman Collection**](/control-plane-postman.json) is provided `/control-plane-postman.json`
+
 ## Base URL & Runtime
 - **Local**: `http://localhost:3000`
 - The server exposes `/health` directly at the root and scopes business routes under `/api/*`.
@@ -396,6 +399,6 @@ curl -X POST http://localhost:3000/api/promo-code/validate \
 
 ## Operational Checklist
 1. Run `npm run dev` (or `npm start` after `npm run build`).
-2. Ensure PostgreSQL is reachable (`docker compose up -d postgres`).
+2. Ensure PostgreSQL is reachable (`your Prisma Cloud connection string`).
 3. Load mock external APIs in `mock-api/` when testing purchase flows.
 4. Seed credits for a customer before attempting purchases or refunds.

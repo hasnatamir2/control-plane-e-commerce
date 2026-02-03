@@ -14,8 +14,8 @@ This application uses **Prisma Cloud PostgreSQL** - no local database setup requ
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd ecommerce-platform
+git clone https://github.com/hasnatamir2/control-plane-e-commerce.git
+cd control-plane-e-commerce
 
 # Copy environment variables
 cp .env.example .env
@@ -254,15 +254,6 @@ npm test -- CreditRepository
 # Run ESLint
 npm run lint
 
-# Fix auto-fixable issues
-npm run lint:fix
-```
-
-### Type Checking
-
-```bash
-# Run TypeScript compiler
-npm run type-check
 ```
 
 ---

@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "E-Commerce Platform API",
-    "description": "Complete API collection for the e-commerce platform",
+    "name": "Control Plane API",
+    "description": "Postman collection for the purchase control plane backend",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -19,6 +19,21 @@
       "key": "productId",
       "value": "660e8400-e29b-41d4-a716-446655440001",
       "type": "string"
+    },
+    {
+      "key": "purchaseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "promoCode",
+      "value": "WELCOME10",
+      "type": "string"
+    },
+    {
+      "key": "promoCodeId",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -32,8 +47,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/health",
-              "host": ["{{baseUrl}}"],
-              "path": ["health"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
             }
           }
         }
@@ -58,8 +77,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/credits/grant",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "credits", "grant"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "credits",
+                "grant"
+              ]
             }
           }
         },
@@ -79,8 +104,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/credits/deduct",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "credits", "deduct"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "credits",
+                "deduct"
+              ]
             }
           }
         },
@@ -91,8 +122,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/credits/balance/{{customerId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "credits", "balance", "{{customerId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "credits",
+                "balance",
+                "{{customerId}}"
+              ]
             }
           }
         },
@@ -103,8 +141,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/credits/transactions/{{customerId}}?limit=50&offset=0",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "credits", "transactions", "{{customerId}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "credits",
+                "transactions",
+                "{{customerId}}"
+              ],
               "query": [
                 {
                   "key": "limit",
@@ -131,8 +176,10 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 201) {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.collectionVariables.set(\"purchaseId\", jsonData.data.purchaseId);",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set(\"purchaseId\", jsonData.data.id);",
+                  "    }",
                   "}"
                 ]
               }
@@ -152,8 +199,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/purchases",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "purchases"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchases"
+              ]
             }
           }
         },
@@ -164,8 +216,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/purchases?limit=20&offset=0",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "purchases"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchases"
+              ],
               "query": [
                 {
                   "key": "limit",
@@ -191,8 +248,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/purchases/{{purchaseId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "purchases", "{{purchaseId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchases",
+                "{{purchaseId}}"
+              ]
             }
           }
         },
@@ -203,8 +266,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/purchases/customer/{{customerId}}?limit=20&offset=0",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "purchases", "customer", "{{customerId}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchases",
+                "customer",
+                "{{customerId}}"
+              ],
               "query": [
                 {
                   "key": "limit",
@@ -234,8 +304,143 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/purchases/{{purchaseId}}/refund",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "purchases", "{{purchaseId}}", "refund"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchases",
+                "{{purchaseId}}",
+                "refund"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Promo Code Management",
+      "item": [
+        {
+          "name": "Create Promo Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data) {",
+                  "        if (jsonData.data.id) {",
+                  "            pm.collectionVariables.set(\"promoCodeId\", jsonData.data.id);",
+                  "        }",
+                  "        if (jsonData.data.code) {",
+                  "            pm.collectionVariables.set(\"promoCode\", jsonData.data.code);",
+                  "        }",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{promoCode}}\",\n  \"type\": \"PERCENTAGE\",\n  \"value\": 15,\n  \"minPurchaseAmount\": 100,\n  \"maxDiscountAmount\": 200,\n  \"maxUsageCount\": 1000,\n  \"validFrom\": \"2026-02-01T00:00:00.000Z\",\n  \"validUntil\": \"2026-12-31T23:59:59.000Z\",\n  \"applicableProductIds\": [\n    \"{{productId}}\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promo-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "promo-code"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validate Promo Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{promoCode}}\",\n  \"purchaseAmount\": 250,\n  \"productId\": \"{{productId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promo-code/validate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "promo-code",
+                "validate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Promo Codes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/promo-code?status=ACTIVE&type=PERCENTAGE&isActive=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "promo-code"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                },
+                {
+                  "key": "type",
+                  "value": "PERCENTAGE"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disable Promo Code",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/promo-code/{{promoCodeId}}/disable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "promo-code",
+                "{{promoCodeId}}",
+                "disable"
+              ]
             }
           }
         }
